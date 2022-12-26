@@ -23,13 +23,21 @@
 //
 // Signature: uint32_t *task(void)
 // 
-// Structure: Initialization code followed by an inifinite loop must be
-// placed between coStart() and coEnd(). Use coYield() to return control to
-// the main event loop. Use coWaitUntil() and coDelay() to wait and delay
-// in a non-blocking fashion.
+// Returns pointer to the local state variable.
+//
+// Structure: Initialization code followed by an inifinite loop must be placed
+// between coStart() and coEnd(). Use coYield() to temporarily return control 
+// to the main event loop. Use coWaitUntil() and coDelay() to wait and delay in
+// a non-blocking fashion. Variable names S and T are reseved by the macros.
 //
 // NOTE: All local variables which are supposed to retain their values over
-// coYield(), coWaitUntil() and coDelay(), should be declared static.
+// coYield(), coWaitUntil() and coDelay(), must be declared static.
+//
+// NOTE2: A task can be reset by dereferencing and zeroing the state pointer
+// returned by the task. For example:
+//
+// uint32_t *state = task();
+// *state = 0;                                        // Reset task
 //------------------------------------------------------------------------------
 uint32_t *blinker() {
   coStart();                                          // Start
@@ -43,7 +51,7 @@ uint32_t *blinker() {
     coDelay(500);                                     // Non-blocking delay
     digitalWrite(13, LOW);
     t = millis();                                     // Another way to delay
-    coWaitUntil(millis() > t + 1000);                 // by using coWaitUntil()
+    coWaitUntil(millis() > t + 500);                  // by using coWaitUntil()
   }
 
   coEnd();                                            // End
@@ -92,11 +100,7 @@ void setup() {
 }
 
 //------------------------------------------------------------------------------
-// Main loop. NOTE: A task can be reset by dereferencing and zeroing the
-// state pointer returned by the task. For example:
-//
-// uint32_t *state = blinker();
-// *state = 0;                                        // Reset blinker
+// Main loop
 //------------------------------------------------------------------------------
 void loop() {
   blinker();                                          // Task 1
