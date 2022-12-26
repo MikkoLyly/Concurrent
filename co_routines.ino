@@ -2,7 +2,7 @@
 //         Simple co-routines for Arduino (works on all boards)               
 //
 // This sketch runs multiple tasks concurrently by keeping track of their
-// states over repeated calls from the main event loop. The library consists
+// states over repeated calls from a main event loop. The library consists
 // of only five lines of macros. Highly inspired by Protothreads.
 //
 // This is a small weekend project written for my self to better understand
