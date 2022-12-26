@@ -13,7 +13,7 @@
 // Date:       26 dec 2022
 //------------------------------------------------------------------------------
 #define coStart() static uint32_t S = 0, T = 0; switch(S) { case 0:;
-#define coEnd() } S = __LINE__;
+#define coEnd() } S = __LINE__; return &S;
 #define coYield() S = __LINE__; return &S; case __LINE__:;
 #define coWaitUntil(X) S = __LINE__; case __LINE__: if(!(X)) return &S;
 #define coDelay(X) T = millis(); coWaitUntil((T + X) < millis());
