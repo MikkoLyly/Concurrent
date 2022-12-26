@@ -1,2 +1,2 @@
 # Concurrent
-Miscellaneous projects related to concurrent programming on MCUs
+Miscellaneous recreational projects related to concurrent programming on MCUs
