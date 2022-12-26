@@ -9,7 +9,7 @@
 // This is a recreational weekend project written for my self to better under-
 // stand the basic concepts of time-slicing on 8bit AVR MCUs.
 // 
-// Written by: Mikko Lyly
+// Written by: Mikko Lyly 
 // Date:       26 dec 2022
 //------------------------------------------------------------------------------
 
