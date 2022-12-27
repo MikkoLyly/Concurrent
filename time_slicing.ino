@@ -84,10 +84,10 @@ void plotter() {
   }
 }
 
+const Task tasks[] = {blinker, console, plotter};
+
 //------------------------------------------------------------------------------
-// List of tasks and initial stack pointers
-//
-// In this example SRAM is organized as follows:
+// Initial stack pointers. In this example SRAM is organized as follows:
 //
 // RAMEND (=0x08ff)
 //     Stack frame of blinker()
@@ -106,7 +106,6 @@ void plotter() {
 //
 // NOTE: There is no protection against memory access violations.
 //------------------------------------------------------------------------------
-const Task tasks[] = {blinker, console, plotter};
 volatile uint16_t stackPointers[] = {RAMEND, RAMEND - 0x100, RAMEND - 0x200};
 
 //------------------------------------------------------------------------------
