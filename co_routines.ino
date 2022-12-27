@@ -7,7 +7,8 @@
 //
 // This is a small weekend project written for my self to better understand
 // the basic concepts of concurrent programming on 8 bit AVR MCUs. There are
-// several full featured libraries to accomplish the same and much more.
+// several full featured libraries (like Protothreads) to accomplish the same
+// and much more.
 //
 // Written by: Mikko Lyly
 // Date:       26 dec 2022
@@ -19,22 +20,35 @@
 #define coDelay(X) T = millis(); coWaitUntil((T + X) < millis());
 
 //------------------------------------------------------------------------------
-//                                   Tasks
+// All tasks must have the following signature and structure:
 //
-// Signature: uint32_t *task(void)
-// 
-// Returns pointer to the local state variable.
+// uint32_t *task()  {
+//   coStart();
 //
-// Structure: Initialization code followed by an inifinite loop must be placed
-// between coStart() and coEnd(). Use coYield() to temporarily return control 
-// to the main event loop. Use coWaitUntil() and coDelay() to wait and delay in
-// a non-blocking fashion. Variable names S and T are reseved by the macros.
+//   /* Initialization code */
 //
-// NOTE: All local variables which are supposed to retain their values over
+//   for(;;) {
+//
+//     /* Infinite loop */
+
+//   }
+//
+//   coEnd();
+// }
+//
+// The function returns pointer to its local state variable.
+//
+// Use coWaitUntil() and coDelay() to wait and/or delay in a non-blocking
+// fashion. coYield() can be used to temporarily return control to the
+// main event loop. 
+//
+// NOTE: Variable names S and T are reseved by the macros.
+//
+// NOTE2: All local variables which are supposed to retain their values over
 // coYield(), coWaitUntil() and coDelay(), must be declared static.
 //
-// NOTE2: A task can be reset by dereferencing and zeroing the state pointer
-// returned by the task. For example:
+// NOTE3: A task can be reset in the main event loop by dereferencing and
+// zeroing the state. For example:
 //
 // uint32_t *state = task();
 // *state = 0;                                        // Reset task
