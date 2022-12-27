@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-//            Simple time-sliced multithreding on Arduino UNO
+//            Simple time-sliced multithreding on Arduino Uno
 //
 // This sketch runs multiple tasks concurrently by performing a context switch
 // every 1 ms. It uses TIMER2 to generate OS ticks (Pro: Arduino's own timing
@@ -15,11 +15,15 @@
 #include <Arduino.h>
 
 //------------------------------------------------------------------------------
-// Global variables and typedefs
+// Typedefs
+//------------------------------------------------------------------------------
+typedef void(*Task)();                             // Task pointer
+
+//------------------------------------------------------------------------------
+// Global variables
 //------------------------------------------------------------------------------
 volatile uint8_t currentTask = 0;                  // Current task ID
 volatile uint32_t currentTicks = 0;                // Milliseconds
-typedef void(*Task)();                             // Task pointer
 
 //------------------------------------------------------------------------------
 // Forward declarations (definitions at the end of this file)
@@ -30,11 +34,18 @@ void pushAddress(Task) __attribute__((always_inline));
 void ownDelay(uint32_t) __attribute__((always_inline));
 
 //------------------------------------------------------------------------------
-//                                     Tasks
+// All tasks must have the following signature and structure:
 //
-// Signature: void task(void)
+// void task() {
 //
-// Structure: Initialization code followed by an infinite loop.
+//   /* Initialization code */
+//
+//   for(;;) {
+//
+//     /* Infinite loop */
+//
+//   }
+// }
 //------------------------------------------------------------------------------
 #define NOF_TASKS 3
 
@@ -53,7 +64,7 @@ void console() {
   Serial.println(F("Console starting"));
 
   for(;;) {        
-    while(Serial.available() > 0) {
+    while(Serial.available() > 0) {                // Read from serial
       char c = Serial.read();
       Serial.print(c);
     }
@@ -74,9 +85,9 @@ void plotter() {
 }
 
 //------------------------------------------------------------------------------
-// List of tasks and initial stack pointers.
+// Task list and initial stack pointers
 //
-// NOTE: SRAM is organized as follows:
+// NOTE: On Arduino Uno SRAM is organized as follows:
 //
 // RAMEND (=0x08ff)
 //   Stack frame of blinker()
@@ -90,9 +101,9 @@ void plotter() {
 //   Registers and ports
 // 0x0000
 //
-// A task needs at least N + 35 bytes to store all local variables (N bytes)
-// and the execution context (35 bytes) in stack. There is no protection against
-// possible memory access violations.
+// A task needs at least N + 35 bytes to store local variables (N bytes),
+// execution context (33 bytes) and program counter (2 bytes) in stack.
+// There is no protection against memory access violations.
 //------------------------------------------------------------------------------
 const Task tasks[] = {blinker, console, plotter};
 volatile uint16_t stackPointers[] = {RAMEND, RAMEND - 0x100, RAMEND - 0x200};
