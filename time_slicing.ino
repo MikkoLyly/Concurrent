@@ -85,25 +85,26 @@ void plotter() {
 }
 
 //------------------------------------------------------------------------------
-// Task list and initial stack pointers
+// List of tasks and initial stack pointers
 //
-// NOTE: On Arduino Uno SRAM is organized as follows:
+// In this example SRAM is organized as follows:
 //
 // RAMEND (=0x08ff)
-//   Stack frame of blinker()
+//     Stack frame of blinker()
 // RAMEND - 0x0100
-//   Stack frame of console()
+//     Stack frame of console()
 // RAMEND - 0x0200
-//   Stack frame of plotter()
+//     Stack frame of plotter()
 // ...
-//   Data, bss, heap
+//     Data, bss, heap
 // RAMSTART (=0x0100)
-//   Registers and ports
+//     Registers and ports
 // 0x0000
 //
-// A task needs at least N + 35 bytes to store local variables (N bytes),
-// execution context (33 bytes) and program counter (2 bytes) in stack.
-// There is no protection against memory access violations.
+// A task needs at least N + 35 bytes for its stack frame (N bytes for local
+// variables, 33 bytes for execution context and 2 bytes for program counter).
+//
+// NOTE: There is no protection against memory access violations.
 //------------------------------------------------------------------------------
 const Task tasks[] = {blinker, console, plotter};
 volatile uint16_t stackPointers[] = {RAMEND, RAMEND - 0x100, RAMEND - 0x200};
