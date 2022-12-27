@@ -30,7 +30,11 @@ void pushAddress(Task) __attribute__((always_inline));
 void ownDelay(uint32_t) __attribute__((always_inline));
 
 //------------------------------------------------------------------------------
-// Tasks (signature: void taskName(), structure: setup + infinite loop)
+//                                     Tasks
+//
+// Signature: void task(void)
+//
+// Structure: Initialization code followed by an infinite loop.
 //------------------------------------------------------------------------------
 #define NOF_TASKS 3
 
