@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
-//               Simple time-sliced multithreding on Arduino UNO
+//            Simple time-sliced multithreding on Arduino UNO
 //
-// This sketch runs multiple tasks in parallel by performing a context switch
+// This sketch runs multiple tasks concurrently by performing a context switch
 // every 1 ms. It uses TIMER2 to generate OS ticks (Pro: Arduino's own timing
 // routines like millis() and delay() remain functional. Con: Makes libraries
 // based on TIMER2 unusable).
@@ -9,16 +9,17 @@
 // This is a recreational weekend project written for my self to better under-
 // stand the basic concepts of time-slicing on 8bit AVR MCUs.
 // 
-// Written by: Mikko Lyly 
+// Written by: Mikko Lyly
 // Date:       26 dec 2022
 //------------------------------------------------------------------------------
+#include <Arduino.h>
 
 //------------------------------------------------------------------------------
 // Global variables and typedefs
 //------------------------------------------------------------------------------
-volatile uint8_t currentTask = 0;
-volatile uint32_t currentTicks = 0;
-typedef void(*Task)();
+volatile uint8_t currentTask = 0;                  // Current task ID
+volatile uint32_t currentTicks = 0;                // Milliseconds
+typedef void(*Task)();                             // Task pointer
 
 //------------------------------------------------------------------------------
 // Forward declarations (definitions at the end of this file)
@@ -29,7 +30,7 @@ void pushAddress(Task) __attribute__((always_inline));
 void ownDelay(uint32_t) __attribute__((always_inline));
 
 //------------------------------------------------------------------------------
-// Tasks (signature: void task(), structure: setup + infinite loop)
+// Tasks (signature: void taskName(), structure: setup + infinite loop)
 //------------------------------------------------------------------------------
 #define NOF_TASKS 3
 
@@ -46,7 +47,7 @@ void blinker() {
 
 void console() {
   Serial.println(F("Console starting"));
-  
+
   for(;;) {        
     while(Serial.available() > 0) {
       char c = Serial.read();
@@ -55,24 +56,42 @@ void console() {
   }
 }
 
-void dotPlotter() {
+void plotter() {
   uint8_t counter = 0;
   
-  Serial.println(F("Dot plotter starting"));
+  Serial.println(F("Plotter starting"));
   
   for(;;) {
-    Serial.print('.');
-    ++counter %= 60;
-    if(!counter) Serial.println();
+    Serial.print('.');                             // Plots a dot once a second
+    ++counter %= 60;                               
+    if(counter == 0) Serial.println();             // New line once a minute
     ownDelay(1000);
   }
 }
 
 //------------------------------------------------------------------------------
-// List of tasks and initial stack pointers 
+// List of tasks and initial stack pointers.
+//
+// NOTE: SRAM is organized as follows:
+//
+// RAMEND (=0x08ff)
+//   Stack frame of blinker()
+// RAMEND - 0x0100
+//   Stack frame of console()
+// RAMEND - 0x0200
+//   Stack frame of plotter()
+// ...
+//   Data, bss, heap
+// RAMSTART (=0x0100)
+//   Registers and ports
+// 0x0000
+//
+// A task needs at least N + 35 bytes to store all local variables (N bytes)
+// and the execution context (35 bytes) in stack. There is no protection against
+// possible memory access violations.
 //------------------------------------------------------------------------------
-const Task tasks[] = {blinker, console, dotPlotter};
-volatile uint16_t stackPointers[] = {RAMEND, RAMEND - 0x0100, RAMEND - 0x200};
+const Task tasks[] = {blinker, console, plotter};
+volatile uint16_t stackPointers[] = {RAMEND, RAMEND - 0x100, RAMEND - 0x200};
 
 //------------------------------------------------------------------------------
 // Arduino's setup()
@@ -81,11 +100,11 @@ void setup() {
   Serial.begin(9600);                              // Init USART
   Serial.println(F("Initializing"));
   pinMode(13, OUTPUT);                             // On-board LED
-    
+   
   //----------------
   // Prepare stacks
   //----------------
-  for(uint8_t n = 0; n < NOF_TASKS; n++) {
+  for(uint8_t n = 0; n < NOF_TASKS; ++n) {
     SP = stackPointers[n];                         // Load stack pointer
     pushAddress(tasks[n]);                         // Push task address
     pushContext();                                 // Push (any) context
@@ -117,7 +136,7 @@ void loop() {                                      // Never reached
 }
 
 //------------------------------------------------------------------------------
-// Switch task
+// Switch task (round-robin)
 //------------------------------------------------------------------------------
 ISR(TIMER2_COMPA_vect, ISR_NAKED) {
   pushContext();                                   // Push context
@@ -213,10 +232,10 @@ void popContext() {
 //------------------------------------------------------------------------------
 // Push task address (2 bytes)
 //------------------------------------------------------------------------------
-void pushAddress(Task addr) {
+void pushAddress(Task task) {
   asm("push %A0     \n"                            // Low byte
       "push %B0     \n"                            // High byte
-      :: "x" (addr));
+      :: "x" (task));
 }
 
 //------------------------------------------------------------------------------
