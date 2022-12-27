@@ -1,8 +1,8 @@
 # Concurrent
-Miscellaneous projects related to concurrent programming on MCUs
+Miscellaneous projects related to concurrent programming on various MCUs
 
-## co_routines
-Simple state based co-routines for all Arduino boards
+### co_routines
+Simple state based co-routines for all boards
 
-## time_slicing
+### time_slicing
 Simple time-sliced multithreading for Arduino UNO
